@@ -1,4 +1,7 @@
 # procServ Configuration Environment
+[![Debian 12](https://github.com/jeonghanlee/procServ-env/actions/workflows/debian12.yml/badge.svg)](https://github.com/jeonghanlee/procServ-env/actions/workflows/debian12.yml)
+[![Rocky8](https://github.com/jeonghanlee/procServ-env/actions/workflows/rocky8.yml/badge.svg)](https://github.com/jeonghanlee/procServ-env/actions/workflows/rocky8.yml)
+[![Rocky9](https://github.com/jeonghanlee/procServ-env/actions/workflows/rocky9.yml/badge.svg)](https://github.com/jeonghanlee/procServ-env/actions/workflows/rocky9.yml)
 
 `procServ` application for Linux Configuration Environment.
 
