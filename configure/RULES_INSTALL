@@ -16,8 +16,8 @@ endif
 ifeq ($(UNAME_S),Linux)
 conf:
 	cd $(SRC_PATH) && autoreconf -i -v -f  && ./configure --prefix="$(INSTALL_LOCATION_APPNAME)" --disable-doc
-debugconf:
-	cd $(SRC_PATH) && autoreconf -i -v -f  && ./configure --prefix="$(INSTALL_LOCATION_APPNAME)" --enable-debug
+conf.systemd:
+	cd $(SRC_PATH) && autoreconf -i -v -f  && ./configure --prefix="$(INSTALL_LOCATION_APPNAME)" --disable-doc --with-systemd-utils
 endif
 
 
