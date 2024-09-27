@@ -18,10 +18,11 @@ jobs:
       - name: Install required packages
         run: |
           apt update -y
-          apt install -y make gcc g++ autoconf autotools-dev git libtool which
+          apt install -y sudo make gcc g++ autoconf autotools-dev git libtool which
       - name: Installation
         run: |
           make github
+          make install
       - name: Environment Check
         run: |
           make vars
