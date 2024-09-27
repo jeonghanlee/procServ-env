@@ -1,0 +1,28 @@
+name: Debian 12
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [master]
+jobs:
+  Debian12:
+    runs-on: ubuntu-latest
+    container: debian:bookworm-slim
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: Install required packages
+        run: |
+          apt update -y
+          apt install -y make gcc g++ autoconf autotools-dev git libtool which
+      - name: Installation
+        run: |
+          make github
+      - name: Environment Check
+        run: |
+          make vars
+          make exist

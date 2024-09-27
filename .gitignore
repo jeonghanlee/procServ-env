@@ -8,3 +8,5 @@ info_tags_ioc
 conf.py
 *~
 .DS_Store
+*-src/
+.versions

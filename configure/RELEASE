@@ -1,18 +1,18 @@
 
-APPNAME:=env-template
+APPNAME:=procServ
 
 ## Where the Source repository SRC_URL/SRC_NAME
 #
-SRC_URL:=https://github.com/jeonghanlee
-SRC_NAME:=${APPNAME}
+SRC_URL:=https://github.com/ralphlange
+SRC_NAME:=$(APPNAME)
 
 
 ## Which the source tag / branch / hash id would like to use
-# 2020-04-21
-SRC_TAG:=master
+# 2024-03-10
+SRC_TAG:=073f290
 
 # Placeholder for the site-specific version control 
-SRC_VERSION:=master
+SRC_VERSION:=$(SRC_TAG)
 
 
 -include $(TOP)/../RELEASE.local
