@@ -19,8 +19,6 @@ VARS_EXCLUDES+=echo
 VARS_EXCLUDES+=$(filter -%, $(.VARIABLES))
 VARS_EXCLUDES+=$(filter "%, $(.VARIABLES))
 VARS_EXCLUDES+=$(filter @%, $(.VARIABLES))
-VARS_EXCLUDES+=RULES_VARS
-VARS_EXCLUDES+=LSOPTS
 
 
 .PHONY: $(RULES_VARS)
@@ -70,7 +68,7 @@ FORCE:
 .PHONY : exist
 
 exist:
-ifeq (, $(shell which tree))
+ifeq (, $(shell command -v tree 2>/dev/null))
 	$(if $(wildcard $(INSTALL_LOCATION)), @ ls -d $(INSTALL_LOCATION) && find $(INSTALL_LOCATION)/ -maxdepth $(LEVEL) | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/:---\1/")
 else
 	$(if $(wildcard $(INSTALL_LOCATION)), tree -aL $(LEVEL) $(INSTALL_LOCATION), $(QUIET)echo "No $(INSTALL_LOCATION)")
@@ -80,4 +78,3 @@ endif
 .DELETE_ON_ERROR:
 
 .NOTPARALLEL:
-

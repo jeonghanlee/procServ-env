@@ -32,11 +32,11 @@ check-tools:
 
 ## Clone Source
 init: check-tools
-	$(call gitclone2,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
+	$(QUIET) $(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
 
 ## Clean Source
 distclean:
-	$(call distclean, $(SRC_PATH))
+	$(QUIET) $(call distclean,$(SRC_PATH))
 
 ## Remove cloned source (alias of distclean)
 deinit: distclean
@@ -53,4 +53,3 @@ all: conf build install
 ## Clone, configure, build, and install (CI entry)
 github: init conf build
 	$(QUIET) sudo $(MAKE) install
-
