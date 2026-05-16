@@ -34,15 +34,19 @@ init:
 distclean:
 	$(call distclean, $(SRC_PATH))
 
+## Remove cloned source (alias of distclean)
 deinit: distclean
 
 .PHONY: build conf all github
 
+## Build source
 build:
 	$(QUIET) $(MAKE) -C $(SRC_PATH)
 
+## Configure, build, and install in one go
 all: conf build install
 
+## Clone, configure, build, and install (CI entry)
 github: init conf build
 	$(QUIET) sudo $(MAKE) install
 

@@ -8,6 +8,7 @@ patch.apply:
 patch.revert:
 	$(QUIET) $(call revert_patch_src)
 
+## Generate a p0 patch file from the current source diff
 patch.make:
 	$(QUIET) mkdir -p $(TOP)/patch
 	$(QUIET) $(call make_p0_patch)

@@ -38,6 +38,7 @@ endif
 
 .PHONY : env vars header
 
+## Print environment variables (alias of vars)
 env: vars
 ## Print interesting VARIABLES : also make PRINT.$(EACH_VARIABLE)
 vars: _header
