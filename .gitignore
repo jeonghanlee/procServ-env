@@ -10,3 +10,4 @@ conf.py
 .DS_Store
 *-src/
 .versions
+work/
