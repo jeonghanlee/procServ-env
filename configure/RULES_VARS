@@ -40,7 +40,7 @@ endif
 
 ## Print environment variables (alias of vars)
 env: vars
-## Print interesting VARIABLES : also make PRINT.$(EACH_VARIABLE)
+## Print interesting VARIABLES (PRINT.<name> for one)
 vars: _header
 	$(foreach v, $(SRC_VARIABLES), $(info $(v) = $($(v)))) @#noop
 
