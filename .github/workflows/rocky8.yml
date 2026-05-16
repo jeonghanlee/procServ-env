@@ -4,14 +4,14 @@ name: Rocky8
 on:
   push:
     branches: [ master ]
-    paths-ignores:
+    paths-ignore:
       - '*.md'
 
   pull_request:
     branches: [ master ]
 
 jobs:
-  Rocky9:
+  Rocky8:
 
     runs-on: ubuntu-latest
     container: rockylinux/rockylinux:8.10
@@ -24,7 +24,6 @@ jobs:
     - name: Setup
       run: |
         make github
-        make install
     - name: Environment Check
       run: |
         make vars

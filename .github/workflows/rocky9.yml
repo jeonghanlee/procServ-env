@@ -4,7 +4,7 @@ name: Rocky9
 on:
   push:
     branches: [ master ]
-    paths-ignores:
+    paths-ignore:
       - '*.md'
 
   pull_request:
@@ -24,7 +24,6 @@ jobs:
     - name: Setup
       run: |
         make github
-        make install
     - name: Environment Check
       run: |
         make vars

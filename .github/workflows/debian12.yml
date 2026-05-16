@@ -22,7 +22,6 @@ jobs:
       - name: Installation
         run: |
           make github
-          make install
       - name: Environment Check
         run: |
           make vars
