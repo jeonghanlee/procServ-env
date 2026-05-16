@@ -6,8 +6,13 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
+      - '.github/workflows/rocky*.yml'
   pull_request:
     branches: [master]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/workflows/rocky*.yml'
 jobs:
   Debian12:
     runs-on: ubuntu-latest

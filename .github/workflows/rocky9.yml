@@ -6,9 +6,13 @@ on:
     branches: [ master ]
     paths-ignore:
       - '*.md'
+      - '.github/workflows/debian*.yml'
 
   pull_request:
     branches: [ master ]
+    paths-ignore:
+      - '*.md'
+      - '.github/workflows/debian*.yml'
 
 jobs:
   Rocky9:

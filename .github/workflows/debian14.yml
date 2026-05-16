@@ -1,4 +1,4 @@
-name: Debian 13
+name: Debian 14
 
 on:
   push:
@@ -14,9 +14,9 @@ on:
       - 'docs/**'
       - '.github/workflows/rocky*.yml'
 jobs:
-  Debian13:
+  Debian14:
     runs-on: ubuntu-latest
-    container: debian:trixie-slim
+    container: debian:forky-slim
     steps:
       - name: checkout
         uses: actions/checkout@v3
