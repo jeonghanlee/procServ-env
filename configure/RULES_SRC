@@ -24,10 +24,14 @@ help:
 
 default: help
 
-.PHONY: init deinit distclean
+.PHONY: init deinit distclean check-tools
+
+## Verify required build tools are available
+check-tools:
+	$(QUIET) bash $(TOP)/configure/check-tools.bash
 
 ## Clone Source
-init:
+init: check-tools
 	$(call gitclone2,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
 
 ## Clean Source
