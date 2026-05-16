@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-required=(git make gcc g++ autoreconf libtool)
+required=(git make gcc g++ autoreconf libtoolize)
 missing=()
 
 for tool in "${required[@]}"; do
