@@ -7,14 +7,14 @@
 This repository helps to build the `procServ` package and its customized application consistently on Linux.
 
 * The source codes are located in <https://github.com/ralphlange/procServ/>
-* Tested on Debian 12, Rocky Linux 8, and Rocky Linux 9 (see `.github/workflows/`).
+* Tested on Debian 12, Debian 13, Debian 14, Rocky Linux 8, Rocky Linux 9, and Rocky Linux 10 (see `.github/workflows/`).
 
 ## Prerequisites
 
 Debian and its variants:
 
 ```bash
-apt install autoconf
+apt install make gcc g++ autoconf autotools-dev libtool git
 ```
 
 ## commands
