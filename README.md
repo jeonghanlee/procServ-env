@@ -2,16 +2,20 @@
 
 `procServ` application for Linux Configuration Environment.
 
+## About
+
+This repository helps to build the `procServ` package and its customized application consistently on Linux.
 
 * The source codes are located in <https://github.com/ralphlange/procServ/>
-* Required packages (Debian and its variants) as follows
+* Tested on Debian 12, Rocky Linux 8, and Rocky Linux 9 (see `.github/workflows/`).
+
+## Prerequisites
+
+Debian and its variants:
 
 ```bash
 apt install autoconf
 ```
-
-## About
-This repository helps to build the `procServ` package and its customized application consistently on Linux.
 
 ## commands
 
