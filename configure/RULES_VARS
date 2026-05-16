@@ -45,19 +45,19 @@ vars: _header
 	$(foreach v, $(SRC_VARIABLES), $(info $(v) = $($(v)))) @#noop
 
 _header:
-	$(QUIET)echo ""
-	$(QUIET)echo "------------------------------------------------------------"
-	$(QUIET)echo ">>>>          Current Environment Variables             <<<<"
-	$(QUIET)echo "------------------------------------------------------------"
-	$(QUIET)echo ""
+	$(QUIET) printf "\n"
+	$(QUIET) printf "%s\n" "------------------------------------------------------------"
+	$(QUIET) printf "%s\n" ">>>>          Current Environment Variables             <<<<"
+	$(QUIET) printf "%s\n" "------------------------------------------------------------"
+	$(QUIET) printf "\n"
 
 # https://www.cmcrossroads.com/article/printing-value-makefile-variable
 PRINT.%:
-	$(QUIET)echo $* = $($*)
-	$(QUIET)echo $*\'s origin is $(origin $*)
+	$(QUIET) printf "%s = %s\n"       "$*" "$($*)"
+	$(QUIET) printf "%s origin: %s\n" "$*" "$(origin $*)"
 
 print-%:
-	$(QUIET)echo $($*)
+	$(QUIET) printf "%s\n" "$($*)"
 
 ls.%:
 	$(QUIET) ls $(LSOPTS) $($*)
