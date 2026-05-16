@@ -36,7 +36,7 @@ define gitclone2
 endef
 
 define checkfile
-$(if $(wildcard $(1)), @echo "There is no source path at $(1).",@echo ">>> Found exist$(1) will be deleted." && rm -f $(1) )
+$(if $(wildcard $(1)), @echo ">>> Found existing $(1) will be deleted." && rm -f $(1), @echo "There is no source path at $(1).")
 endef
 
 

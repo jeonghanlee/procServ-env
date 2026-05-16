@@ -1,4 +1,4 @@
-PHONY: install uninstall src_install src_uninstall src_clean
+.PHONY: install uninstall src_install src_uninstall src_clean
 
 install: src_install src_version
 
@@ -10,7 +10,7 @@ clean: src_clean
 ## Copy the site specific files into sources
 ifeq ($(UNAME_S),Darwin)
 conf:
-	cd $(SRC_PATH) && autoreconf -i -v -f  && env CPPFLAGS='-I/opt/homebrew/include' LDFLAGS='-L/opt/homebrew/lib' ./configure --prefix="$(INSTALL_LOCATION_ULDAQ)"
+	cd $(SRC_PATH) && autoreconf -i -v -f  && env CPPFLAGS='-I/opt/homebrew/include' LDFLAGS='-L/opt/homebrew/lib' ./configure --prefix="$(INSTALL_LOCATION_APPNAME)"
 endif
 
 ifeq ($(UNAME_S),Linux)
