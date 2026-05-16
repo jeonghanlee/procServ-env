@@ -10,11 +10,6 @@
 apt install autoconf
 ```
 
-```bash
-apt install python3-build python3.11-venv
-
-```
-
 ## About
 This repository helps to build the `procServ` package and its customized application consistently on Linux.
 
