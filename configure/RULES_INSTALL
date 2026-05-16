@@ -35,11 +35,11 @@ src_clean:
 
 
 src_version: FORCE
-	$(QUIET)echo "Timestamps : $$(date +%Y%m%d-%H%M%S)/YYYYMMDD-HHMMSS" > $(TOP)/.versions
-	$(QUIET)echo "- SRC REMOTE URL   : $(SRC_GITURL)"  >> $(TOP)/.versions
-	$(QUIET)echo "- SRC SITE VERSION : $(SRC_TAG)"     >> $(TOP)/.versions
-	$(QUIET)echo "- SRC GIT  VERSION : "               >> $(TOP)/.versions
-	$(QUIET)cd $(SRC_PATH) && git describe --tags      >> $(TOP)/.versions
+	$(QUIET)printf "Timestamps : %s/YYYYMMDD-HHMMSS\n" "$$(date +%Y%m%d-%H%M%S)" > $(TOP)/.versions
+	$(QUIET)printf "%s\n" "- SRC REMOTE URL   : $(SRC_GITURL)" >> $(TOP)/.versions
+	$(QUIET)printf "%s\n" "- SRC SITE VERSION : $(SRC_TAG)" >> $(TOP)/.versions
+	$(QUIET)printf "%s\n" "- SRC GIT  VERSION : " >> $(TOP)/.versions
+	$(QUIET)git -C $(SRC_PATH) describe --tags >> $(TOP)/.versions
 
 src_version_clean:
 	$(QUIET)rm -rf $(TOP)/.versions

@@ -1,7 +1,7 @@
 # hash id is the full length
 define make_p0_patch
 	printf "\nCreating a p0 patch file in $(TOP)/patch\\n";
-	cd $(SRC_PATH) && git diff --no-prefix > $(TOP)/patch/$$(git rev-parse HEAD).p0.patch
+	git -C $(SRC_PATH) diff --no-prefix > $(TOP)/patch/$$(git -C $(SRC_PATH) rev-parse HEAD).p0.patch
 endef
 
 define patch_src
