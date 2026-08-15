@@ -26,6 +26,7 @@ SOURCE_COMMIT=""
 INSTALL_LOCATION=""
 INSTALL_PREFIX=""
 INSTALL_LOG=""
+TEST_CASE=""
 INSTALL_BIN=""
 SUDO_BIN=""
 
@@ -40,7 +41,7 @@ function pass {
 
 function usage {
     printf "Usage: %s [--local | --system]\n" "${0##*/}"
-    printf "  --local   Test installation to a user-writable destination.\n"
+    printf "  --local   Test existing and absent user-writable destinations.\n"
     printf "  --system  Test installation to a protected destination with real sudo.\n"
 }
 
@@ -147,6 +148,7 @@ function validate_environment {
     [[ "$keep" == "0" || "$keep" == "1" ]] || die "KEEP_WORKSPACE must be 0 or 1."
 
     require_command bash
+    require_command dirname
     require_command git
     require_command grep
     require_command install
@@ -190,6 +192,7 @@ function prepare_workspace {
     trap cleanup EXIT
 
     git clone --quiet --local --no-hardlinks "$PROJECT_ROOT" "$TEST_PROJECT"
+    install -m 0644 "${PROJECT_ROOT}/configure/CONFIG_SRC" "${TEST_PROJECT}/configure/CONFIG_SRC"
     install -m 0644 "${PROJECT_ROOT}/configure/RULES_INSTALL" "${TEST_PROJECT}/configure/RULES_INSTALL"
     make --no-print-directory -C "$TEST_PROJECT" init \
         SRC_GITURL="$SOURCE_REPO" \
@@ -202,6 +205,24 @@ function prepare_workspace {
         die "Cloned procServ source is not clean."
 }
 
+function assert_sudo_selection {
+    local expected_info="$1"
+    local expected_sudo="$2"
+    local description="$3"
+    local actual_info=""
+    local actual_sudo=""
+
+    actual_info="$(make -s --no-print-directory -C "$TEST_PROJECT" print-SUDO_INFO \
+        INSTALL_LOCATION="$INSTALL_LOCATION")"
+    actual_sudo="$(make -s --no-print-directory -C "$TEST_PROJECT" print-SUDO \
+        INSTALL_LOCATION="$INSTALL_LOCATION")"
+    [[ "$actual_info" == "$expected_info" ]] || \
+        die "${description}: expected SUDO_INFO=${expected_info}, got ${actual_info}."
+    [[ "$actual_sudo" == "$expected_sudo" ]] || \
+        die "${description}: expected SUDO=${expected_sudo:-<empty>}, got ${actual_sudo:-<empty>}."
+    pass "${description} selected the expected privilege command."
+}
+
 function configure_and_build {
     make --no-print-directory -C "$TEST_PROJECT" conf build \
         INSTALL_LOCATION="$INSTALL_LOCATION" \
@@ -209,7 +230,7 @@ function configure_and_build {
 }
 
 function install_and_capture {
-    INSTALL_LOG="${WORKSPACE}/install-${MODE}.log"
+    INSTALL_LOG="${WORKSPACE}/install-${TEST_CASE}.log"
     make --no-print-directory -C "$TEST_PROJECT" install \
         INSTALL_LOCATION="$INSTALL_LOCATION" \
         SRC_PATH="$TEST_SOURCE_RELATIVE" \
@@ -222,18 +243,38 @@ function install_and_capture {
     [[ -x "${INSTALL_PREFIX}/bin/procServ" ]] || die "Installed procServ executable was not found."
 }
 
-function run_local_test {
-    mkdir -p "${WORKSPACE}/writable"
-    INSTALL_LOCATION="${WORKSPACE}/writable/install"
+function assert_install_without_sudo {
+    local description="$1"
+
+    if grep -Eq '(^|[[:space:]/])sudo([[:space:]]|$)' "$INSTALL_LOG"; then
+        die "${description} invoked sudo."
+    fi
+    pass "${description} completed without sudo."
+    pass "Installed executable exists at ${INSTALL_PREFIX}/bin/procServ."
+}
+
+function run_existing_local_test {
+    TEST_CASE="local-existing"
+    INSTALL_LOCATION="${WORKSPACE}/writable/existing"
     mkdir -p "$INSTALL_LOCATION"
 
+    assert_sudo_selection "0" "" "Existing writable destination"
     configure_and_build
     install_and_capture
-    if grep -Eq '(^|[[:space:]/])sudo([[:space:]]|$)' "$INSTALL_LOG"; then
-        die "Writable installation invoked sudo."
-    fi
-    pass "Writable installation completed without sudo."
-    pass "Installed executable exists at ${INSTALL_PREFIX}/bin/procServ."
+    assert_install_without_sudo "Existing writable installation"
+}
+
+function run_absent_local_test {
+    TEST_CASE="local-absent"
+    mkdir -p "${WORKSPACE}/writable"
+    INSTALL_LOCATION="${WORKSPACE}/writable/missing/levels/install"
+    [[ ! -e "$INSTALL_LOCATION" ]] || die "Absent installation destination already exists."
+    [[ ! -e "${WORKSPACE}/writable/missing" ]] || die "Absent installation parent already exists."
+
+    assert_sudo_selection "0" "" "Absent writable destination"
+    configure_and_build
+    install_and_capture
+    assert_install_without_sudo "Absent writable installation"
 }
 
 function run_system_test {
@@ -245,6 +286,7 @@ function run_system_test {
     if ! system_workspace="$(resolve_workspace)"; then
         die "System test workspace is invalid."
     fi
+    TEST_CASE="system-protected"
     INSTALL_LOCATION="${system_workspace}/protected/install"
     "$SUDO_BIN" -n "$INSTALL_BIN" -d -o root -g root -m 0755 "$INSTALL_LOCATION"
     protected_parent="$(realpath -e -- "${INSTALL_LOCATION}/..")"
@@ -255,6 +297,7 @@ function run_system_test {
     [[ ! -w "$protected_parent" ]] || die "Protected installation parent is writable by the test user."
     [[ ! -w "$INSTALL_LOCATION" ]] || die "Protected installation destination is writable by the test user."
 
+    assert_sudo_selection "1" "$SUDO_BIN" "Protected destination"
     configure_and_build
     install_and_capture
     if ! grep -Eq '(^|[[:space:]/])sudo([[:space:]]|$)' "$INSTALL_LOG"; then
@@ -270,7 +313,10 @@ function main {
     prepare_workspace
 
     case "$MODE" in
-        local) run_local_test ;;
+        local)
+            run_existing_local_test
+            run_absent_local_test
+            ;;
         system) run_system_test ;;
         *) die "Unsupported test mode: ${MODE}" ;;
     esac

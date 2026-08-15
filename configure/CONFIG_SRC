@@ -5,17 +5,24 @@ INSTALL_PROGRAM:=$(INSTALL)
 INSTALL_DATA:=$(INSTALL) -m 644
 INSTALL_755:=$(INSTALL) -m 755
 
-# IF INSTALL_LOCATIOIN/.. is not WRITABLE, SUDO and SUDOBASH should be used 
-# SUDO_INFO 1 : SUDO is needed (NOT writable)
-# SUDO_INFO 0 : SUDO is not needed
-# There is no simple way to detect whether SUDO is needed to create INSTALL_LOCATION"
-# test -w $(INSTALL_LOCATION) is wrong, if the directory doesn't exsit.
-# So, test -w $(INSTALL_LOCATION)/.. is a bit better solution.
-# There is only one exception when INSTALL_LOCATION = HOME.
+# Linux tests the destination when it exists and otherwise walks to the
+# nearest existing path before checking writability. Other systems retain
+# the existing destination-or-parent policy.
+ifeq ($(UNAME_S),Linux)
+SUDO_INFO := $(shell install_path="$(INSTALL_LOCATION)"; \
+	if [ -z "$$install_path" ]; then install_path="/"; fi; \
+	while [ ! -e "$$install_path" ]; do \
+		parent_path=$$(dirname -- "$$install_path"); \
+		if [ "$$parent_path" = "$$install_path" ]; then break; fi; \
+		install_path="$$parent_path"; \
+	done; \
+	test -w "$$install_path"; printf "%s\n" "$$?")
+else
 ifeq "$(INSTALL_LOCATION)" "${HOME}"
 SUDO_INFO := $(shell test -w $(INSTALL_LOCATION) 1>&2 2> /dev/null; echo $$?)
 else
 SUDO_INFO := $(shell test -w $(INSTALL_LOCATION)/.. 1>&2 2> /dev/null; echo $$?)
+endif
 endif
 
 SUDO_CMD := $(shell which sudo)
@@ -61,4 +68,3 @@ VARS_EXCLUDES+=INSTALL_PROGRAM
 VARS_EXCLUDES+=INSTALL_DATA
 VARS_EXCLUDES+=SUDOBASH
 VARS_EXCLUDES+=INSTALL_755
-
