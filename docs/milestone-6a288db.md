@@ -13,7 +13,7 @@ Canonical branch or ref: master
 Git upstream: origin/master
 Remote tracker: `jeonghanlee/procServ-env`; GitHub milestone: none
 
-Next session entry point: On a disposable Linux host that permits root-owned test directories below `/tmp`, work as a regular user. Run `sudo -n true`, then create and remove an empty workspace below `/tmp` with `mktemp` and `rmdir`. After the sudo check, workspace creation, and workspace removal all succeed, record G1 Complete, restore M1 to In progress, and run `tests/test-install-privilege.bash --system` from the repository root.
+Next session entry point: On a disposable Linux host that permits root-owned test directories below `/tmp`, work as a regular user. Run `sudo -n true`, then create and remove an empty workspace below `/tmp` with `mktemp` and `rmdir`. After all three checks succeed, record G1 Complete, restore M1 and M3 to In progress, and run `tests/test-install-privilege.bash --system` from the repository root; that run supplies M1 / T2 and M3 / T3.
 
 ## Milestone
 
@@ -22,11 +22,18 @@ Next session entry point: On a disposable Linux host that permits root-owned tes
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Privilege handling | M1 | Honor the configured sudo decision in `src_install` | Milestone | Blocked | No | G1 | `src_install` follows `SUDO`; M1 / T1 and M1 / T2 pass; issue #1 is closed or an owner exception is recorded; [detail](#m1---honor-the-configured-sudo-decision-in-src_install) |
-| Privilege handling | G1 | Provide a privileged disposable Linux test environment | External gate | Open | No | | M1 / T2 can run with authorized non-interactive `sudo`; [detail](#g1---provide-a-privileged-disposable-linux-test-environment) |
+| Privilege handling | G1 | Provide a privileged disposable Linux test environment | External gate | Open | No | | M1 / T2 and M3 / T3 can run with authorized non-interactive `sudo`; [detail](#g1---provide-a-privileged-disposable-linux-test-environment) |
+| Privilege handling | M3 | Correct privilege detection for an absent install destination | Milestone | Blocked | No | G1 | The privilege decision is correct for existing writable, absent writable, and protected destinations; [detail](#m3---correct-privilege-detection-for-an-absent-install-destination) |
 
 ### Decisions
 
 No decisions recorded.
+
+### Assignment History
+
+| Work Identity | From Canonical | To Canonical | Target Commit | Authority Moved At |
+| --- | --- | --- | --- | --- |
+| `docs/milestone-6a288db.md` / M3 | `docs/milestone-6a288db.md` / Backlog | `docs/milestone-6a288db.md` / Milestone | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -107,7 +114,7 @@ Status: Open
 
 ##### Summary
 
-The owner or operator must provide a disposable Linux environment with authorized non-interactive `sudo` so M1 / T2 can install to a protected temporary destination. The current container sets `NoNewPrivs: 1`, so `sudo` cannot elevate privilege and M1 remains Blocked.
+The owner or operator must provide a disposable Linux environment with authorized non-interactive `sudo` so M1 / T2 and M3 / T3 can install to a protected temporary destination. The current container sets `NoNewPrivs: 1`, so `sudo` cannot elevate privilege and both milestones remain Blocked.
 
 ##### Completion Criteria
 
@@ -120,10 +127,74 @@ The owner or operator must provide a disposable Linux environment with authorize
 | Observed At | Result | Evidence |
 | --- | --- | --- |
 | 2026-08-14T09:48:32-07:00 | Open | `tests/test-install-privilege.bash --system` exited 1 before T2; `sudo` reported that `no new privileges` prevents elevation; `/proc/self/status` reported `NoNewPrivs: 1` |
+| 2026-08-14T17:30:11-07:00 | Open | `./tests/test-install-privilege.bash --system` exited 1 before creating a workspace or cloning source; `sudo` reported an invalid container ownership for `/etc/sudo.conf` and that `no new privileges` prevents elevation |
 
 ##### Closure Evidence
 
 - None.
+
+#### M3 - Correct privilege detection for an absent install destination
+
+Origin: 6a288db / M3
+Identity History: none
+GitHub Issue: none
+Status: Blocked
+
+##### Summary
+
+On Linux, base the privilege decision on `INSTALL_LOCATION` when it exists and otherwise on the nearest existing path, so an absent destination below a writable path selects an empty `SUDO` value.
+
+##### Scope
+
+Define and verify parent-directory resolution for existing and absent Linux installation destinations before evaluating writability.
+
+Out of scope: the M1 `src_install` command selection, uninstall behavior, and Darwin privilege policy.
+
+##### Completion Criteria
+
+- An absent installation destination under a writable parent selects an empty `SUDO` value.
+- An existing writable installation destination continues to select an empty `SUDO` value.
+- A destination under a protected parent continues to select `sudo`.
+- The real shipped configuration and install path verify all three cases without replacing the detection logic or Makefile path.
+
+##### Dependencies And Decisions
+
+- G1; resume as In progress after the external test environment is available.
+- Owner decision: assigned to the current Milestone, plan accepted, and implementation authorized in chat, 2026-08-14.
+- Observation: A pre-T1 exploratory run on 2026-08-14 selected `/usr/bin/sudo` for an absent destination under a writable temporary workspace. Recheck with the shipped `print-SUDO_INFO` target and an absent destination below a writable parent.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: Owner approval in chat, 2026-08-14
+Implementation Authorization: Owner approval in chat, 2026-08-14
+Superseded Plan Artifacts: none
+
+1. Reproduce the decision with existing writable, absent writable, and protected destination paths through the shipped configuration.
+2. Select a parent-directory expression that remains valid when the destination does not exist.
+3. Update only the Linux writability decision and preserve the current Darwin policy.
+4. Run the real install path for all three destination states and retain the observations.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Configuration | Evaluate the shipped configuration with an existing writable installation destination | Linux host with a user-writable temporary directory | `SUDO_INFO` is `0` and `SUDO` is empty |
+| T2 | Integration | Run the shipped real install path with an absent destination below a writable parent | Linux host with build prerequisites and a user-writable temporary directory | Installation succeeds without invoking `sudo` |
+| T3 | Integration | Run the shipped real install path with a destination below a protected parent | Disposable Linux system with authorized non-interactive `sudo` | Installation invokes `sudo` and succeeds |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-08-14T17:30:11-07:00 | Debian 13, Linux 6.12.100+deb13-amd64, x86_64 | Pass | `env MAKE=/bin/false MAKE_COMMAND=/bin/false MAKEFLAGS=-e GNUMAKEFLAGS=-e MFLAGS=-e MAKEFILES=/dev/null MAKEOVERRIDES=SUDO_CMD SUDO_CMD= SUDO=/bin/false ./tests/test-install-privilege.bash --local`; overrides cleared before Make execution; existing writable destination selected `SUDO_INFO=0` and empty `SUDO`; real procServ source commit `073f290012bd5c09666e066d3491c034f08c3bfe`; install completed without `sudo`; installed `bin/procServ` observed |
+| T2 | 2026-08-14T17:30:11-07:00 | Debian 13, Linux 6.12.100+deb13-amd64, x86_64 | Pass | Same real-path command and source as T1; three absent destination components below a writable existing path selected `SUDO_INFO=0` and empty `SUDO`; the shipped configure, build, and install path created the destination without `sudo`; installed `bin/procServ` observed; successful workspace cleanup observed |
+| T3 | 2026-08-14T17:30:11-07:00 | Current container, `NoNewPrivs: 1` | Pending | `./tests/test-install-privilege.bash --system` exited 1 before creating a workspace or cloning source; authorized non-interactive `sudo` is unavailable; G1 remains Open |
+
+##### Closure Evidence
+
+- Third-person review accepted the implementation after its findings were corrected; the second-person pass found no remaining reader-facing issue, 2026-08-15.
+- M3 / T3 remains pending on G1.
 
 ## Backlog
 
@@ -134,7 +205,6 @@ Backlog rows are unassigned and excluded from the milestone tally.
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Privilege handling | M2 | Assess sudo selection in uninstall recipes | Milestone | Open | No | | The owner resolves priority and scope from the audit evidence; [detail](#m2---assess-sudo-selection-in-uninstall-recipes) |
-| Privilege handling | M3 | Correct privilege detection for an absent install destination | Milestone | Open | No | | The owner assigns or otherwise resolves the observed detection defect; [detail](#m3---correct-privilege-detection-for-an-absent-install-destination) |
 
 ### Backlog Details
 
@@ -190,67 +260,6 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | T1 | Not run | Linux writable temporary destination | Pending | none |
 | T2 | Not run | Disposable Linux protected temporary destination | Pending | none |
-
-##### Closure Evidence
-
-- None.
-
-#### M3 - Correct privilege detection for an absent install destination
-
-Origin: 6a288db / M3
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-Correct the Linux privilege decision for a writable installation destination that does not yet exist. The current `test -w $(INSTALL_LOCATION)/..` expression fails before the shell can resolve `..` when the `INSTALL_LOCATION` component is absent, so `SUDO_INFO` incorrectly selects `sudo`.
-
-##### Scope
-
-Define and verify parent-directory resolution for existing and absent Linux installation destinations before evaluating writability.
-
-Out of scope: the M1 `src_install` command selection, uninstall behavior, and Darwin privilege policy.
-
-##### Completion Criteria
-
-- An absent installation destination under a writable parent selects an empty `SUDO` value.
-- An existing writable installation destination continues to select an empty `SUDO` value.
-- A destination under a protected parent continues to select `sudo`.
-- The real shipped configuration and install path verify all three cases without replacing the detection logic or Makefile path.
-
-##### Dependencies And Decisions
-
-- Owner condition: priority and assignment are unresolved; remain Open until the owner records a decision.
-- Observation: A pre-T1 exploratory run on 2026-08-14 selected `/usr/bin/sudo` for an absent destination under a writable temporary workspace. Recheck with the shipped `print-SUDO_INFO` target and an absent destination below a writable parent.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Reproduce the decision with existing writable, absent writable, and protected destination paths through the shipped configuration.
-2. Select a parent-directory expression that remains valid when the destination does not exist.
-3. Update only the Linux writability decision and preserve the current Darwin policy.
-4. Run the real install path for all three destination states and retain the observations.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Configuration | Evaluate the shipped configuration with an existing writable installation destination | Linux host with a user-writable temporary directory | `SUDO_INFO` is `0` and `SUDO` is empty |
-| T2 | Integration | Run the shipped real install path with an absent destination below a writable parent | Linux host with build prerequisites and a user-writable temporary directory | Installation succeeds without invoking `sudo` |
-| T3 | Integration | Run the shipped real install path with a destination below a protected parent | Disposable Linux system with authorized non-interactive `sudo` | Installation invokes `sudo` and succeeds |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Linux existing writable destination | Pending | none |
-| T2 | Not run | Linux absent writable destination | Pending | none |
-| T3 | Not run | Disposable Linux protected destination | Pending | none |
 
 ##### Closure Evidence
 
