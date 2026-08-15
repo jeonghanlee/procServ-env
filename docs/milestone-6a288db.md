@@ -13,7 +13,7 @@ Canonical branch or ref: master
 Git upstream: origin/master
 Remote tracker: `jeonghanlee/procServ-env`; GitHub milestone: none
 
-Next session entry point: On a disposable Linux host that permits root-owned test directories below `/tmp`, work as a regular user. Run `sudo -n true`, then create and remove an empty workspace below `/tmp` with `mktemp` and `rmdir`. After all three checks succeed, record G1 Complete, restore M1 and M3 to In progress, and run `tests/test-install-privilege.bash --system` from the repository root; that run supplies M1 / T2 and M3 / T3.
+Next session entry point: Every assigned row in `## Milestone` is Complete. The only remaining work is the unassigned Backlog row M2 (assess sudo selection in the uninstall recipes), which stays Open until the owner records a dated decision on its priority and change scope.
 
 ## Milestone
 
@@ -21,9 +21,9 @@ Next session entry point: On a disposable Linux host that permits root-owned tes
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Privilege handling | M1 | Honor the configured sudo decision in `src_install` | Milestone | Blocked | No | G1 | `src_install` follows `SUDO`; M1 / T1 and M1 / T2 pass; issue #1 is closed or an owner exception is recorded; [detail](#m1---honor-the-configured-sudo-decision-in-src_install) |
-| Privilege handling | G1 | Provide a privileged disposable Linux test environment | External gate | Open | No | | M1 / T2 and M3 / T3 can run with authorized non-interactive `sudo`; [detail](#g1---provide-a-privileged-disposable-linux-test-environment) |
-| Privilege handling | M3 | Correct privilege detection for an absent install destination | Milestone | Blocked | No | G1 | The privilege decision is correct for existing writable, absent writable, and protected destinations; [detail](#m3---correct-privilege-detection-for-an-absent-install-destination) |
+| Privilege handling | M1 | Honor the configured sudo decision in `src_install` | Milestone | Complete | No | G1 | `src_install` follows `SUDO`; M1 / T1 and M1 / T2 pass; issue #1 is closed or an owner exception is recorded; [detail](#m1---honor-the-configured-sudo-decision-in-src_install) |
+| Privilege handling | G1 | Provide a privileged disposable Linux test environment | External gate | Complete | No | | M1 / T2 and M3 / T3 can run with authorized non-interactive `sudo`; [detail](#g1---provide-a-privileged-disposable-linux-test-environment) |
+| Privilege handling | M3 | Correct privilege detection for an absent install destination | Milestone | Complete | No | G1 | The privilege decision is correct for existing writable, absent writable, and protected destinations; [detail](#m3---correct-privilege-detection-for-an-absent-install-destination) |
 
 ### Decisions
 
@@ -42,7 +42,7 @@ No decisions recorded.
 Origin: 6a288db / M1
 Identity History: none
 GitHub Issue: [#1](https://github.com/jeonghanlee/procServ-env/issues/1)
-Status: Blocked
+Status: Complete
 
 ##### Summary
 
@@ -63,7 +63,7 @@ Out of scope: changing privilege detection in `configure/CONFIG_SRC`, changing `
 
 ##### Dependencies And Decisions
 
-- G1; resume as In progress after the external test environment is available.
+- G1 completed on 2026-08-15; the recorded executable status In progress is restored.
 
 ##### Implementation Plan
 
@@ -89,28 +89,29 @@ Superseded Plan Artifacts: none
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | T1 | 2026-08-14T12:23:58-07:00 | Debian 13.6, Linux 6.12.100+deb13-amd64, x86_64 | Pass | `env MAKE=/bin/false MAKE_COMMAND=/bin/false MAKEFLAGS=-e GNUMAKEFLAGS=-e MFLAGS=-e MAKEFILES=/dev/null MAKEOVERRIDES=SUDO_CMD SUDO_CMD= SUDO=/bin/false ./tests/test-install-privilege.bash --local`; overrides cleared before Make execution; real procServ source commit `073f290012bd5c09666e066d3491c034f08c3bfe`; install completed with the normal `make` command and without `sudo`; installed `bin/procServ` observed; successful workspace cleanup observed |
-| T2 | Not run | Disposable Linux protected temporary destination | Pending | none |
+| T2 | 2026-08-15T01:57:36-07:00 | Debian GNU/Linux 13 (trixie), Linux 6.12.74+deb13+1-cloud-amd64, x86_64, disposable libvirt guest `procserv-debian13-test` provisioned by `cloud-provision`, regular user `vmadmin` with `NOPASSWD` sudo | Pass | `./tests/test-install-privilege.bash --system` from the repository root exited 0; real procServ source commit `073f290012bd5c09666e066d3491c034f08c3bfe`; the shipped install path invoked `/usr/bin/sudo make -C procServ-src install` for the root-owned destination; installed `bin/procServ` observed; no leftover workspace under `/tmp` after the run |
 
 ##### Closure Evidence
 
-- None.
+- Deliverable carried by commit `43b4f56`; M1 / T1 passed 2026-08-14 and M1 / T2 passed 2026-08-15 on the real shipped install path.
+- GitHub issue #1 was observed `CLOSED` at 2026-08-15T02:07:25-07:00; remote update 2026-08-15T09:07:19Z. Recheck with `gh issue view 1 --repo jeonghanlee/procServ-env --json state`.
 
 ##### GitHub Projection
 
 Title: Avoid unconditional sudo invocation in src_install
 Labels: `bug`
 GitHub Milestone: none
-Observed State: open
+Observed State: closed
 Observed Labels: `bug`
 Observed Milestone: none
-Last Compared: 2026-08-14T09:27:57-07:00; remote update 2026-08-13T08:04:52Z
-Projection Drift: The live issue body does not include the accepted Implementation Plan, M1 / T1 result, or G1; no GitHub mutation is authorized.
+Last Compared: 2026-08-15T02:07:25-07:00; remote update 2026-08-15T09:07:19Z
+Projection Drift: The live issue body still omits the accepted Implementation Plan and the M1 / T1 and M1 / T2 results; a closing comment recording the fix commit and the verified destinations was added instead.
 
 #### G1 - Provide a privileged disposable Linux test environment
 
 Origin: 6a288db / G1
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
@@ -128,17 +129,19 @@ The owner or operator must provide a disposable Linux environment with authorize
 | --- | --- | --- |
 | 2026-08-14T09:48:32-07:00 | Open | `tests/test-install-privilege.bash --system` exited 1 before T2; `sudo` reported that `no new privileges` prevents elevation; `/proc/self/status` reported `NoNewPrivs: 1` |
 | 2026-08-14T17:30:11-07:00 | Open | `./tests/test-install-privilege.bash --system` exited 1 before creating a workspace or cloning source; `sudo` reported an invalid container ownership for `/etc/sudo.conf` and that `no new privileges` prevents elevation |
+| 2026-08-15T01:56:29-07:00 | Complete | Disposable libvirt guest `procserv-debian13-test`, Debian GNU/Linux 13 (trixie), Linux 6.12.74+deb13+1-cloud-amd64, provisioned with `bin/create_vm.bash -o debian13 -p procserv` from `cloud-provision`; as regular user `vmadmin`, `sudo -n true` succeeded, `mktemp -d /tmp/g1check.XXXXXX` and `rmdir` succeeded, and `/proc/self/status` reported `NoNewPrivs: 0` |
 
 ##### Closure Evidence
 
-- None.
+- Owner decision in chat, 2026-08-15: a disposable `cloud-provision` guest is the sanctioned privileged test environment; the guest is discarded after use.
+- All three completion criteria were observed in that guest on 2026-08-15.
 
 #### M3 - Correct privilege detection for an absent install destination
 
 Origin: 6a288db / M3
 Identity History: none
 GitHub Issue: none
-Status: Blocked
+Status: Complete
 
 ##### Summary
 
@@ -159,7 +162,7 @@ Out of scope: the M1 `src_install` command selection, uninstall behavior, and Da
 
 ##### Dependencies And Decisions
 
-- G1; resume as In progress after the external test environment is available.
+- G1 completed on 2026-08-15; the recorded executable status was restored and the work then completed.
 - Owner decision: assigned to the current Milestone, plan accepted, and implementation authorized in chat, 2026-08-14.
 - Observation: A pre-T1 exploratory run on 2026-08-14 selected `/usr/bin/sudo` for an absent destination under a writable temporary workspace. Recheck with the shipped `print-SUDO_INFO` target and an absent destination below a writable parent.
 
@@ -189,12 +192,12 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | T1 | 2026-08-14T17:30:11-07:00 | Debian 13, Linux 6.12.100+deb13-amd64, x86_64 | Pass | `env MAKE=/bin/false MAKE_COMMAND=/bin/false MAKEFLAGS=-e GNUMAKEFLAGS=-e MFLAGS=-e MAKEFILES=/dev/null MAKEOVERRIDES=SUDO_CMD SUDO_CMD= SUDO=/bin/false ./tests/test-install-privilege.bash --local`; overrides cleared before Make execution; existing writable destination selected `SUDO_INFO=0` and empty `SUDO`; real procServ source commit `073f290012bd5c09666e066d3491c034f08c3bfe`; install completed without `sudo`; installed `bin/procServ` observed |
 | T2 | 2026-08-14T17:30:11-07:00 | Debian 13, Linux 6.12.100+deb13-amd64, x86_64 | Pass | Same real-path command and source as T1; three absent destination components below a writable existing path selected `SUDO_INFO=0` and empty `SUDO`; the shipped configure, build, and install path created the destination without `sudo`; installed `bin/procServ` observed; successful workspace cleanup observed |
-| T3 | 2026-08-14T17:30:11-07:00 | Current container, `NoNewPrivs: 1` | Pending | `./tests/test-install-privilege.bash --system` exited 1 before creating a workspace or cloning source; authorized non-interactive `sudo` is unavailable; G1 remains Open |
+| T3 | 2026-08-15T01:57:36-07:00 | Debian GNU/Linux 13 (trixie), Linux 6.12.74+deb13+1-cloud-amd64, x86_64, disposable libvirt guest `procserv-debian13-test` provisioned by `cloud-provision`, regular user `vmadmin` with `NOPASSWD` sudo | Pass | `./tests/test-install-privilege.bash --system` from the repository root exited 0; real procServ source commit `073f290012bd5c09666e066d3491c034f08c3bfe`; the protected destination selected the expected privilege command and the shipped install path invoked `/usr/bin/sudo make -C procServ-src install`; installed `bin/procServ` observed; no leftover workspace under `/tmp` after the run |
 
 ##### Closure Evidence
 
 - Third-person review accepted the implementation after its findings were corrected; the second-person pass found no remaining reader-facing issue, 2026-08-15.
-- M3 / T3 remains pending on G1.
+- All three completion criteria are observed: M3 / T1 and M3 / T2 on 2026-08-14, M3 / T3 on 2026-08-15 after G1 completed.
 
 ## Backlog
 
