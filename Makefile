@@ -18,7 +18,7 @@
 # Author  : Jeong Han Lee
 # email   : JeongLee@lbl.gov
 # Date    : Friday, May  1 14:41:59 PDT 2020
-# version : 0.0.2
+# version : 1.0.0
 
 TOP:=$(CURDIR)
 ifneq (1,$(words $(TOP)))
